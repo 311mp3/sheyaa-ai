@@ -15,32 +15,41 @@ Keep replies short and impactful.
 `;
 
 app.post("/chat", async (req, res) => {
-  const { user, message } = req.body;
+  try {
+    const { user, message } = req.body;
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: `${user}: ${message}` }
-      ]
-    })
-  });
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: `${user ?? "User"}: ${message ?? ""}` }
+        ]
+      })
+    });
 
-  const data = await response.json();
+    const data = await response.json();
 
-  const reply = data.choices?.[0]?.message?.content || "...";
+    const reply = data?.choices?.[0]?.message?.content?.trim();
 
-res.json({
-  text: reply
-});
-});
+    // 🧠 SMARTBOTS COMPATIBILITY LAYER (KEY FIX)
+    const payload = {
+      text: reply || "..."
+    };
 
-app.listen(3000, () => {
-  console.log("Sheyaa AI running");
+    return res.json(payload);
+
+  } catch (err) {
+    console.error("AI ERROR:", err);
+
+    // ALWAYS return valid SmartBots format even on failure
+    return res.json({
+      text: "..."
+    });
+  }
 });
