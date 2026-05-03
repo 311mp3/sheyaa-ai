@@ -48,8 +48,6 @@ app.post("/chat", async (req, res) => {
     console.error("AI ERROR:", err);
 
     // ALWAYS return valid SmartBots format even on failure
-    return res.json({
-      text: "..."
-    });
+   return res.send(reply || "...");
   }
 });
